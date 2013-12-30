@@ -6,11 +6,16 @@ from CFGReader import *
 import HashCheck
 import shutil
 import sys
+import os
 
 # Read Clone.cfg
 cfg = CFGReader('Clone.cfg')
 src_dir = cfg.readCfg('src_dir')
 dst_dir = cfg.readCfg('dst_dir')
+
+# Check if destination folder exists
+if not os.path.exists(dst_dir):
+    os.makedirs(dst_dir)
 
 # Enumerate files
 src_fs = Filesystem(src_dir)
@@ -43,16 +48,22 @@ for src_file in src_stripped:
             in_list = 1
             if not HashCheck.compareMD5(HashCheck.fileMD5(src_file[0]), HashCheck.fileMD5(dst_file[0])):
                 changedFiles.append([src_file[0], dst_file[0]])
-    if in_list == 0:
-        newFiles.append([src_file[0], dst_file[0]])
+        if in_list == 0:
+            newFiles.append([src_file[0], dst_file[0]])
 
 for dst_file in dst_stripped:
     in_list = 0
     for src_file in src_stripped:
         if dst_file[1] == src_file[1]:
             in_list = 1
-    if in_list == 0:        
-        delFiles.append([dst_file[0], dst_file[1]])
+        if in_list == 0:        
+            delFiles.append([dst_file[0], dst_file[1]])
+
+print(len(newFiles))
+print(len(changedFiles))
+print(len(delFiles))
+
+sys.exit()
 
 # Write file changes
 for file in newFiles:
