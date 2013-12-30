@@ -25,16 +25,13 @@ dst_fs = Filesystem(dst_dir)
 dst_files = dst_fs.enum()
 
 # Prepare filenames for comparison
-src_prefix = os.path.commonprefix(src_files)
-dst_prefix = os.path.commonprefix(dst_files)
-
 src_stripped = []
 dst_stripped = []
 
 for filename in src_files:
-    src_stripped.append([filename, filename.strip(src_prefix)])
+    src_stripped.append([filename, filename[len(src_dir):len(filename)]])
 for filename in dst_files:
-    dst_stripped.append([filename, filename.strip(dst_prefix)])
+    dst_stripped.append([filename, filename[len(dst_dir):len(filename)]])
 
 # Compare filesystems
 newFiles = []
@@ -48,26 +45,24 @@ for src_file in src_stripped:
             in_list = 1
             if not HashCheck.compareMD5(HashCheck.fileMD5(src_file[0]), HashCheck.fileMD5(dst_file[0])):
                 changedFiles.append([src_file[0], dst_file[0]])
-        if in_list == 0:
-            newFiles.append([src_file[0], dst_file[0]])
+    if in_list == 0:
+        newFiles.append(src_file)
 
 for dst_file in dst_stripped:
     in_list = 0
     for src_file in src_stripped:
         if dst_file[1] == src_file[1]:
             in_list = 1
-        if in_list == 0:        
-            delFiles.append([dst_file[0], dst_file[1]])
+    if in_list == 0:        
+        delFiles.append(dst_file)
 
-print(len(newFiles))
-print(len(changedFiles))
-print(len(delFiles))
-
-sys.exit()
+print(newFiles)
+print(changedFiles)
+print(delFiles)
 
 # Write file changes
 for file in newFiles:
-    shutil.copyfile(file[0], os.path.join(dst_dir, file[1]))
+    shutil.copyfile(file[0], dst_dir + file[1])
 
 for file in changedFiles:
     os.remove(os.path.join(dst_dir, file[1]))
